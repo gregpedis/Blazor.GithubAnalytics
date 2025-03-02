@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Grecque.Plots\GithubAnalytics.Plots.fsproj" />
+    <ProjectReference Include="..\GithubAnalytics.Plots\GithubAnalytics.Plots.fsproj" />
   </ItemGroup>
 
 </Project>
