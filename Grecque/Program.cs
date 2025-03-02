@@ -1,51 +1,26 @@
-﻿using Grecque.Json;
-using Grecque.Plots;
+﻿using GithubAnalytics.Api;
+using GithubAnalytics.Json;
+using GithubAnalytics.Plots;
 using Newtonsoft.Json;
 using Plotly.NET;
 using System.Diagnostics;
 
-var issues = await FetchIssues();
-var result = Aggregate(issues);
-Visualize(result.Dates, result.Created, result.Closed);
+var token = ""; // DEBUG
+var logs = new List<string>();
+var service = new HttpService(token, logs);
 
-Console.WriteLine($"Current open issues: {result.Created[^1] - result.Closed[^1]}");
-Console.WriteLine($"Current closed issues: {result.Closed[^1]}");
-Console.WriteLine($"Current total issues: {result.Created[^1]}");
+var user = await service.GetUserInfo();
 
-static async Task<List<Issue>> FetchIssues()
-{
-    var owner = "sonarsource";
-    var repo = "sonar-dotnet";
-    var per_page = 100;
+var prs = await service.GetPullRequests(user.Name);
+var x = 1;
 
-    // - state: "open" || "closed" || "all"                 -> all 
-    // - per_page: how many per page (default=30)           -> 100 (max)
-    // - page: current page                                 -> increment per loop
-    var baseUrl = $"https://api.github.com/repos/{owner}/{repo}/issues?state=all&per_page={per_page}&page=";
-    var token = "";
+//var issues = await FetchIssues();
+//var result = Aggregate(issues);
+//Visualize(result.Dates, result.Created, result.Closed);
+//Console.WriteLine($"Current open issues: {result.Created[^1] - result.Closed[^1]}");
+//Console.WriteLine($"Current closed issues: {result.Closed[^1]}");
+//Console.WriteLine($"Current total issues: {result.Created[^1]}");
 
-    using var client = new HttpClient();
-    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-    client.DefaultRequestHeaders.Add("User-Agent", Guid.NewGuid().ToString());
-
-    var sw = Stopwatch.StartNew();
-
-    var pageNumber = 1; // total is around 82
-    var result = new List<Issue>();
-    List<Issue> current = null;
-    do
-    {
-        var response = await client.GetStringAsync(baseUrl + pageNumber);
-        current = JsonConvert.DeserializeObject<List<Issue>>(response);
-        result.AddRange(current.Where(x => !x.IsPullRequest));
-
-        Console.WriteLine($"[Network - {sw.Elapsed}] Page: {pageNumber}");
-        pageNumber++;
-    }
-    while (current.Count > 0);
-
-    return result;
-}
 
 static Aggregation Aggregate(List<Issue> issues)
 {

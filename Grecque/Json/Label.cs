@@ -1,6 +1,6 @@
-﻿namespace Grecque.Json;
+﻿namespace GithubAnalytics.Json;
 
-internal class Label
+public class Label
 {
     public string Name { get; set; }
 }
