@@ -1,24 +1,25 @@
 ﻿using GithubAnalytics.Json;
+using GithubAnalytics.Logging;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Globalization;
 
 namespace GithubAnalytics.Api;
 
-public class HttpService : IDisposable
+#pragma warning disable S1075 // URIs should not be hardcoded
+public sealed class HttpService : IDisposable
 {
 	const string DATE_MASK = "yyyy-MM-ddTHH:mm:ssZ";
 	const int PER_PAGE = 30;
 	private const string BASE_URL = "https://api.github.com";
 
-	private readonly JsonSerializerSettings _jsonSettings;
+	private readonly ILogger _logger;
 	private readonly HttpClient _client;
-	private readonly List<string> _logs;
+	private readonly JsonSerializerSettings _jsonSettings;
 
-	public HttpService(string token, List<string> logs)
+	public HttpService(string token, ILogger logger)
 	{
-		_logs = logs;
-
+		_logger = logger;
 		_client = new() { BaseAddress = new Uri(BASE_URL) };
 		_client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 		_client.DefaultRequestHeaders.Add("User-Agent", Guid.NewGuid().ToString());
@@ -29,6 +30,23 @@ public class HttpService : IDisposable
 			DateFormatString = DATE_MASK,
 			Culture = CultureInfo.InvariantCulture,
 		};
+	}
+
+	/// <summary>
+	///  Get the user statistics for the specified user, or the current user if no userId is specified.
+	/// </summary>
+	public async Task<UserStatistics> GetUserStatistics(string userId = null)
+	{
+		var user = await (userId is null ? GetUserInfo() : GetUserInfo(userId));
+		var issues = await GetPullRequests(user.Name);
+
+		var pullRequests = new List<PullRequest>();
+		foreach (var issue in issues)
+		{
+			var files = await GetPullRequestFiles(issue);
+			pullRequests.Add(new(issue, files));
+		}
+		return new(user, pullRequests);
 	}
 
 	/// <summary>
@@ -46,51 +64,41 @@ public class HttpService : IDisposable
 	/// <summary>
 	/// Gets all Pull Requests that the user is an author of.
 	/// </summary>
-	public async Task<List<PullRequest>> GetPullRequests(string userId)
+	public async Task<List<Issue>> GetPullRequests(string username)
 	{
-		var prs = new List<PullRequest>();
+		var prs = new List<Issue>();
 
 		var page = 1;
 		PullRequestBatch batch;
 		do
 		{
-			batch = await ExecuteGet<PullRequestBatch>($"search/issues?per_page={PER_PAGE}&page={page}&q=is:pr+author:{userId}");
-			prs.AddRange(batch.PullRequests);
+			batch = await ExecuteGet<PullRequestBatch>($"search/issues?per_page={PER_PAGE}&page={page}&q=is:pr+author:{username}");
+			prs.AddRange(batch.Issues);
 			page++;
 		}
-		while (batch.PullRequests.Count > 0);
+		while (batch.Issues.Count > 0);
 
 		return prs;
 	}
 
 	/// <summary>
-	/// Gets the details of a specific Pull Request.
+	/// Gets the files of a specific Pull Request.
 	/// </summary>
-	public async Task<PullRequest> GetPullRequestDetails(string owner, string repo, int pull_number) =>
-		await ExecuteGet<PullRequest>($"repos/{owner}/{repo}/pulls{pull_number}/files");
+	public async Task<List<PullRequestFile>> GetPullRequestFiles(Issue issue) =>
+		await ExecuteGet<List<PullRequestFile>>(issue.FilesUrl[BASE_URL.Length..]);
 
 	private async Task<T> ExecuteGet<T>(string endpoint)
 	{
 		var sw = Stopwatch.StartNew();
-		Log("HTTP", $"Executing GET at '{endpoint}'.");
+		_logger.Log("HTTP", $"Executing GET at '{endpoint}'.");
 
 		var result = await _client.GetAsync(endpoint);
 
-		Log("HTTP", $"Finished  GET at '{endpoint}' in {sw.Elapsed}. Result: {result.StatusCode}.");
+		_logger.Log("HTTP", $"Finished  GET at '{endpoint}' in {sw.Elapsed}. Result: {result.StatusCode}.");
 		var value = await result.Content.ReadAsStringAsync();
 		return JsonConvert.DeserializeObject<T>(value, _jsonSettings);
 	}
 
-	private void Log(string prefix, string message)
-	{
-		var log = $"[{prefix}] {message}";
-		_logs.Add(log);
-		Console.WriteLine(log);
-	}
-
-	public void Dispose()
-	{
-		GC.SuppressFinalize(this);
+	public void Dispose() =>
 		_client.Dispose();
-	}
 }
