@@ -4,16 +4,16 @@ public class UserStatistics
 {
 	public User UserDetails { get; }
 
-	public int TotalPullRequests { get; }
+	public long TotalPullRequests { get; }
 
-	public int TotalFiles { get; }
-	public int TotalFilesAdded { get; }
-	public int TotalFilesDeleted { get; }
-	public int TotalFilesModified { get; }
+	public long TotalFiles { get; }
+	public long TotalFilesAdded { get; }
+	public long TotalFilesDeleted { get; }
+	public long TotalFilesModified { get; }
 
-	public int TotalAdditions { get; }
-	public int TotalDeletions { get; }
-	public int TotalChanges { get; }
+	public long TotalAdditions { get; }
+	public long TotalDeletions { get; }
+	public long TotalChanges { get; }
 
 	public List<PullRequest> PullRequests { get; }
 
@@ -38,20 +38,20 @@ public class UserStatistics
 
 public class PullRequest
 {
-	public int Id { get; }
+	public long Id { get; }
 	public string Title { get; }
-	public int Number { get; }
+	public long Number { get; }
 	public string State { get; }
 	public string Url { get; }
 	public string RepositoryUrl { get; }
 	public DateTime CreatedDate { get; }
-	public DateTime ClosedDate { get; }
+	public DateTime? ClosedDate { get; }
 
 	public List<PullRequestFile> Files { get; }
 
-	public int TotalAdditions { get; }
-	public int TotalDeletions { get; }
-	public int TotalChanges { get; }
+	public long TotalAdditions { get; }
+	public long TotalDeletions { get; }
+	public long TotalChanges { get; }
 
 	public PullRequest(Issue issue, List<PullRequestFile> files)
 	{

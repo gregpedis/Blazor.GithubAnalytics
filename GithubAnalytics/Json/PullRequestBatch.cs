@@ -5,7 +5,7 @@ namespace GithubAnalytics.Json;
 public class PullRequestBatch
 {
     [JsonProperty("total_count")]
-    public int TotalCount { get; set; }
+    public long TotalCount { get; set; }
 
     [JsonProperty("incomplete_results")]
     public bool IncompleteResults { get; set; }
@@ -16,9 +16,9 @@ public class PullRequestBatch
 
 public class Issue
 {
-	public int Id { get; set; }
+	public long Id { get; set; }
 	public string Title { get; set; }
-	public int Number { get; set; }
+	public long Number { get; set; }
 	// "open" || "closed"
 	public string State { get; set; }
 
@@ -35,7 +35,7 @@ public class Issue
 	public DateTime CreatedDate { get; set; }
 
 	[JsonProperty("closed_at")]
-	public DateTime ClosedDate { get; set; }
+	public DateTime? ClosedDate { get; set; }
 
 	public string FilesUrl => $"{PullRequest.Url}/files";
 }
