@@ -1,10 +1,12 @@
 ﻿using GithubAnalytics.Json;
-using GithubAnalytics.Logging;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
+using System.Runtime.CompilerServices;
+using System.Security.Authentication;
 
-namespace GithubAnalytics.Api;
+namespace GithubAnalytics;
 
 #pragma warning disable S1075 // URIs should not be hardcoded
 public sealed class HttpService : IDisposable
@@ -32,12 +34,26 @@ public sealed class HttpService : IDisposable
 		};
 	}
 
+	public async Task TestConnection()
+	{
+		var test = await _client.GetAsync("user");
+		if (test.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			var message = "Authentication failed.";
+			_logger.Log("API", message);
+			throw new AuthenticationException(message);
+		}
+	}
+
 	/// <summary>
 	///  Get the user statistics for the specified user, or the current user if no userId is specified.
 	/// </summary>
-	public async Task<UserStatistics> GetUserStatistics(string userId = null)
+	public async Task<UserStatistics> GetUserStatistics(string username = null)
 	{
-		var user = await (userId is null ? GetUserInfo() : GetUserInfo(userId));
+		var sw = Stopwatch.StartNew();
+		_logger.Log("API", $"Fetching user statistics for username: '{username ?? ""}'.");
+
+		var user = await (string.IsNullOrWhiteSpace(username) ? GetUserInfo() : GetUserInfo(username));
 		var issues = await GetPullRequests(user.Name);
 
 		var pullRequests = new List<PullRequest>();
@@ -46,6 +62,8 @@ public sealed class HttpService : IDisposable
 			var files = await GetPullRequestFiles(issue);
 			pullRequests.Add(new(issue, files));
 		}
+
+		_logger.Log("API", $"Finished fetching user statistics for username: '{username ?? ""}' in {sw.Elapsed}.");
 		return new(user, pullRequests);
 	}
 
@@ -59,7 +77,7 @@ public sealed class HttpService : IDisposable
 	/// Get a user's profile information.
 	/// </summary>
 	public async Task<User> GetUserInfo(string userId) =>
-		await ExecuteGet<User>($"user/{userId}");
+		await ExecuteGet<User>($"users/{userId}");
 
 	/// <summary>
 	/// Gets all Pull Requests that the user is an author of.

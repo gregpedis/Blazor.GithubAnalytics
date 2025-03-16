@@ -1,0 +1,94 @@
+﻿@page "/"
+@using Newtonsoft.Json
+
+<PageTitle>GithubAnalytics</PageTitle>
+
+<h1>Github Analytics</h1>
+<hr />
+
+<span>
+	Ever wondered how many <b>Pull Requests</b> you have made?
+	<br />
+	Or how many <b>lines of codes</b> you have touched?
+	<br />
+	Wonder no more, it's time to find out!
+</span>
+
+<hr />
+
+<div>
+	<label>Token</label>
+	<input @bind="Token" class="form-control" placeholder="Place your token here." />
+</div>
+
+<br />
+
+<div>
+	<label></label>
+	<label>Username</label>
+	<input @bind="Username" class="form-control" placeholder="Optional. Leave empty for current user." />
+</div>
+
+<br />
+
+<button @onclick="GetUserStatisticsAsync" class="btn btn-primary mt-2">Cook</button>
+
+<hr />
+
+<h4>Analytics</h4>
+<textarea placeholder="nothing to see here yet...">
+	@Result
+</textarea>
+
+<hr/>
+
+<h3>Logs</h3>
+
+<table class="table table-striped">
+	<tbody>
+		@foreach (var entry in _logger.Logs)
+		{
+			<tr>
+				<td>@entry</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+@code {
+	private string Token { get; set; } = string.Empty;
+	private string Username { get; set; } = string.Empty;
+	private string Result { get; set; } = string.Empty;
+
+	private BlazorLogger _logger { get; set; }
+
+	protected override void OnInitialized()
+	{
+		_logger = new(this);
+	}
+
+	public void Refresh() =>
+		StateHasChanged();
+
+	private async Task GetUserStatisticsAsync()
+	{
+		_logger.Logs.Clear();
+		using var service = new HttpService(Token, _logger);
+		await service.TestConnection();
+
+		var userStatistics = await service.GetUserStatistics(Username);
+		Result = JsonConvert.SerializeObject(userStatistics, Formatting.Indented);
+	}
+
+	public class BlazorLogger(Index index) : ILogger
+	{
+		public List<string> Logs { get; } = ["Logging will appear here..."];
+
+		public void Log(string prefix, string message)
+		{
+			Logs.Add($"[{prefix}] {message}");
+			index.Refresh();
+		}
+	}
+}
+

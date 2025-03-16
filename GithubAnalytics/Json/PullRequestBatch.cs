@@ -4,14 +4,14 @@ namespace GithubAnalytics.Json;
 
 public class PullRequestBatch
 {
-    [JsonProperty("total_count")]
-    public long TotalCount { get; set; }
+	[JsonProperty("total_count")]
+	public long TotalCount { get; set; }
 
-    [JsonProperty("incomplete_results")]
-    public bool IncompleteResults { get; set; }
+	[JsonProperty("incomplete_results")]
+	public bool IncompleteResults { get; set; }
 
-    [JsonProperty("items")]
-    public List<Issue> Issues { get; set; }
+	[JsonProperty("items")]
+	public List<Issue> Issues { get; set; }
 }
 
 public class Issue
@@ -19,8 +19,14 @@ public class Issue
 	public long Id { get; set; }
 	public string Title { get; set; }
 	public long Number { get; set; }
-	// "open" || "closed"
 	public string State { get; set; }
+	public PullRequestState StateEnum =>
+		State switch
+		{
+			"open" => PullRequestState.Open,
+			"closed" => PullRequestState.Closed,
+			_ => PullRequestState.Unspecified,
+		};
 
 	[JsonProperty("url")]
 	public string IssueUrl { get; set; }
@@ -43,4 +49,12 @@ public class Issue
 public class PullRequestUrl
 {
 	public string Url { get; set; }
+}
+
+
+public enum PullRequestState
+{
+	Open,
+	Closed,
+	Unspecified,
 }

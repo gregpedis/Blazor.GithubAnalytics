@@ -1,76 +1,38 @@
 ﻿namespace GithubAnalytics.Json;
 
-public class UserStatistics
+#pragma warning disable S3604 // Member initializer values should not be redundant
+public class UserStatistics(User userDetails, List<PullRequest> pullRequests)
 {
-	public User UserDetails { get; }
+	public User UserDetails { get; } = userDetails;
 
-	public long TotalPullRequests { get; }
+	public List<PullRequest> PullRequests { get; set; } = pullRequests;
+	public long TotalPullRequests { get; } = pullRequests.Count;
+	public int OpenPullRequests { get; } = pullRequests.Count(x => x.State == PullRequestState.Open);
+	public int ClosedPullRequests { get; } = pullRequests.Count(x => x.State == PullRequestState.Closed);
 
-	public long TotalFiles { get; }
-	public long TotalFilesAdded { get; }
-	public long TotalFilesDeleted { get; }
-	public long TotalFilesModified { get; }
+	public long TotalFiles { get; } = pullRequests.Sum(x => x.Files.Count);
+	public long TotalFilesAdded { get; } = pullRequests.Sum(x => x.Files.Count(x => x.StatusEnum == PullRequestFileStatus.Added));
+	public long TotalFilesDeleted { get; } = pullRequests.Sum(x => x.Files.Count(x => x.StatusEnum == PullRequestFileStatus.Deleted));
+	public long TotalFilesModified { get; } = pullRequests.Sum(x => x.Files.Count(x => x.StatusEnum == PullRequestFileStatus.Modified));
 
-	public long TotalAdditions { get; }
-	public long TotalDeletions { get; }
-	public long TotalChanges { get; }
-
-	public List<PullRequest> PullRequests { get; }
-
-	public UserStatistics(User userDetails, List<PullRequest> pullRequests)
-	{
-		UserDetails = userDetails;
-
-		PullRequests = pullRequests;
-		TotalPullRequests = pullRequests.Count;
-		PullRequests = new(); // DEBUG: too much noise.
-
-		TotalFiles = pullRequests.Sum(x => x.Files.Count);
-		TotalFilesAdded = pullRequests.Sum(x => x.Files.Count);		// TODO: filter with status
-		TotalFilesDeleted = pullRequests.Sum(x => x.Files.Count);	// TODO: filter with status
-		TotalFilesModified = pullRequests.Sum(x => x.Files.Count);	// TODO: filter with status
-
-		TotalAdditions = pullRequests.Sum(x => x.TotalAdditions);
-		TotalDeletions = pullRequests.Sum(x => x.TotalDeletions);
-		TotalChanges = pullRequests.Sum(x => x.TotalChanges);
-	}
+	public long TotalAdditions { get; } = pullRequests.Sum(x => x.TotalAdditions);
+	public long TotalDeletions { get; } = pullRequests.Sum(x => x.TotalDeletions);
+	public long TotalChanges { get; } = pullRequests.Sum(x => x.TotalChanges);
 }
 
-public class PullRequest
+public class PullRequest(Issue issue, List<PullRequestFile> files)
 {
-	public long Id { get; }
-	public string Title { get; }
-	public long Number { get; }
-	public string State { get; }
-	public string Url { get; }
-	public string RepositoryUrl { get; }
-	public DateTime CreatedDate { get; }
-	public DateTime? ClosedDate { get; }
+	public long Id { get; } = issue.Id;
+	public string Title { get; } = issue.Title;
+	public long Number { get; } = issue.Number;
+	public PullRequestState State { get; } = issue.StateEnum;
+	public string Url { get; } = issue.PullRequest.Url;
+	public string RepositoryUrl { get; } = issue.RepositoryUrl;
+	public DateTime CreatedDate { get; } = issue.CreatedDate;
+	public DateTime? ClosedDate { get; } = issue.ClosedDate;
 
-	public List<PullRequestFile> Files { get; }
-
-	public long TotalAdditions { get; }
-	public long TotalDeletions { get; }
-	public long TotalChanges { get; }
-
-	public PullRequest(Issue issue, List<PullRequestFile> files)
-	{
-		Id = issue.Id;
-		Title = issue.Title;
-		Number = issue.Number;
-		State = MapState(issue.State);
-		Url = issue.PullRequest.Url;
-		RepositoryUrl = issue.RepositoryUrl;
-		CreatedDate = issue.CreatedDate;
-		ClosedDate = issue.ClosedDate;
-		Files = files;
-
-		TotalAdditions = files.Sum(x => x.Additions);
-		TotalDeletions = files.Sum(x => x.Deletions);
-		TotalChanges = files.Sum(x => x.Changes);
-	}
-
-	// "open" || "closed"
-	private string MapState(string state)  // TODO: make this enum
-		=> state;
+	public List<PullRequestFile> Files { get; } = files;
+	public long TotalAdditions { get; } = files.Sum(x => x.Additions);
+	public long TotalDeletions { get; } = files.Sum(x => x.Deletions);
+	public long TotalChanges { get; } = files.Sum(x => x.Changes);
 }

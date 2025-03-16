@@ -5,6 +5,10 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GithubAnalytics", "GithubAnalytics\GithubAnalytics.csproj", "{A23677A2-4534-4C14-8FBB-505DF86DBDA2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GithubAnalytics.Console", "GithubAnalytics.Console\GithubAnalytics.Console.csproj", "{A6AE12C2-3FB5-4E87-AED3-21FA567468B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GithubAnalytics.Blazor", "GithubAnalytics.Blazor\GithubAnalytics.Blazor.csproj", "{481C70D5-4BAF-44AA-852E-35C30C649C61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{A23677A2-4534-4C14-8FBB-505DF86DBDA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A23677A2-4534-4C14-8FBB-505DF86DBDA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A23677A2-4534-4C14-8FBB-505DF86DBDA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6AE12C2-3FB5-4E87-AED3-21FA567468B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6AE12C2-3FB5-4E87-AED3-21FA567468B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6AE12C2-3FB5-4E87-AED3-21FA567468B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6AE12C2-3FB5-4E87-AED3-21FA567468B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{481C70D5-4BAF-44AA-852E-35C30C649C61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{481C70D5-4BAF-44AA-852E-35C30C649C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{481C70D5-4BAF-44AA-852E-35C30C649C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{481C70D5-4BAF-44AA-852E-35C30C649C61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

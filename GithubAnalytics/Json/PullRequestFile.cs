@@ -8,9 +8,24 @@ public class PullRequestFile
 	public long Deletions { get; set; }
 	public long Changes { get; set; }
 
-	//  added | modified | ???
 	public string Status { get; set; }
 
-	public string State => Status; // TODO: Make this enum
+	public PullRequestFileStatus StatusEnum =>
+		Status switch
+		{
+			"added" => PullRequestFileStatus.Added,
+			"removed" => PullRequestFileStatus.Deleted,
+			"modified" => PullRequestFileStatus.Modified,
+			"renamed" => PullRequestFileStatus.Modified,
+			_ => PullRequestFileStatus.Unspecified,
+		};
+}
+
+public enum PullRequestFileStatus
+{
+	Added,
+	Deleted,
+	Modified,
+	Unspecified,
 }
 

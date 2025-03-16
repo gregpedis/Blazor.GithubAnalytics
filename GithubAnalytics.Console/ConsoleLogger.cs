@@ -1,4 +1,4 @@
-﻿namespace GithubAnalytics.Logging;
+﻿namespace GithubAnalytics;
 
 public class ConsoleLogger : ILogger
 {
