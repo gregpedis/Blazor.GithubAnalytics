@@ -1,0 +1,36 @@
+name: Build and Deploy to VPS
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 8.0.x
+
+      - name: install .NET WASM Build Tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish .NET Core Project
+        run: dotnet publish GithubAnalytics.Blazor/GithubAnalytics.Blazor.csproj -c Release -o published
+
+      - name: Deploy with rsync over SSH
+        uses: burnett01/rsync-deployments@5.2
+        with:
+          switches: -avz --delete
+          path: published/
+          remote_path: /var/www/github-analytics
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_user: ${{ secrets.VPS_USER }}
+          remote_key: ${{ secrets.VPS_SSH_KEY }}
