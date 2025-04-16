@@ -97,7 +97,7 @@ public sealed class HttpService : IDisposable
 			batch = await ExecuteGet<PullRequestBatch>($"search/issues?per_page={PER_PAGE}&page={page}&q=is:pr+author:{username}");
 			if (batch is null)
 			{
-				continue;
+				break;
 			}
 			prs.AddRange(batch.Issues);
 		}
