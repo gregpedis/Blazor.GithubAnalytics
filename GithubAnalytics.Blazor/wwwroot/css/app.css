@@ -1,3 +1,4 @@
-code {
-    color: #c02d76;
+textarea {
+    min-width: 100%;
+    min-height: 500px;
 }
