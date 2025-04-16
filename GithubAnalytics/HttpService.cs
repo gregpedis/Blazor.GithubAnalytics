@@ -60,7 +60,10 @@ public sealed class HttpService : IDisposable
 		foreach (var issue in issues)
 		{
 			var files = await GetPullRequestFiles(issue);
-			pullRequests.Add(new(issue, files));
+			if (files is not null)
+			{
+				pullRequests.Add(new(issue, files));
+			}
 		}
 
 		_logger.Log("API", $"Finished fetching user statistics for username: '{username ?? ""}' in {sw.Elapsed}.");
@@ -86,13 +89,17 @@ public sealed class HttpService : IDisposable
 	{
 		var prs = new List<Issue>();
 
-		var page = 1;
+		var page = 0;
 		PullRequestBatch batch;
 		do
 		{
-			batch = await ExecuteGet<PullRequestBatch>($"search/issues?per_page={PER_PAGE}&page={page}&q=is:pr+author:{username}");
-			prs.AddRange(batch.Issues);
 			page++;
+			batch = await ExecuteGet<PullRequestBatch>($"search/issues?per_page={PER_PAGE}&page={page}&q=is:pr+author:{username}");
+			if (batch is null)
+			{
+				continue;
+			}
+			prs.AddRange(batch.Issues);
 		}
 		while (batch.Issues.Count > 0);
 
@@ -105,7 +112,7 @@ public sealed class HttpService : IDisposable
 	public async Task<List<PullRequestFile>> GetPullRequestFiles(Issue issue) =>
 		await ExecuteGet<List<PullRequestFile>>(issue.FilesUrl[BASE_URL.Length..]);
 
-	private async Task<T> ExecuteGet<T>(string endpoint)
+	private async Task<T> ExecuteGet<T>(string endpoint) where T : class
 	{
 		var sw = Stopwatch.StartNew();
 		_logger.Log("HTTP", $"Executing GET at '{endpoint}'.");
@@ -113,6 +120,10 @@ public sealed class HttpService : IDisposable
 		var result = await _client.GetAsync(endpoint);
 
 		_logger.Log("HTTP", $"Finished  GET at '{endpoint}' in {sw.Elapsed}. Result: {result.StatusCode}.");
+		if (!result.IsSuccessStatusCode)
+		{
+			return null;
+		}
 		var value = await result.Content.ReadAsStringAsync();
 		return JsonConvert.DeserializeObject<T>(value, _jsonSettings);
 	}
