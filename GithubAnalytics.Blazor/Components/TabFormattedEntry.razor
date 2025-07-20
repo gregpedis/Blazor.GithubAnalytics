@@ -1,0 +1,10 @@
+﻿<div class="labeled-value">
+	<label>@Label</label>
+	<span>@Value</span>
+</div>
+
+
+@code {
+	[Parameter] public string Label { get; set; } = string.Empty;
+	[Parameter] public object Value { get; set; }
+}

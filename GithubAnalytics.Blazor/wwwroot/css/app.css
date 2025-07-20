@@ -1,4 +1,49 @@
 textarea {
     min-width: 100%;
-    min-height: 500px;
+    min-height: 400px;
+    max-height: 400px;
+}
+
+.tab-container {
+    min-width: 100%;
+}
+
+.tab-buttons button {
+    padding: 8px 16px;
+    margin-right: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.tab-buttons .active-tab {
+    background-color: lawngreen;
+    font-weight: bold;
+}
+
+.tab-content {
+    min-height: 410px;
+    margin-top: 15px;
+}
+
+.labeled-value {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+    .labeled-value label {
+        font-weight: 600;
+        min-width: 100px;
+        color: lightgreen;
+    }
+
+    .labeled-value span {
+        color: gray;
+    }
+
+
+.logs-container {
+    max-height: 200px;
+    overflow-y: auto;
 }

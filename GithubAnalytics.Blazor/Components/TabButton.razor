@@ -1,0 +1,20 @@
+﻿<button class="@css" @onclick="HandleClick">
+	@TabId
+</button>
+
+@code {
+	[Parameter] public string TabId { get; set; } = string.Empty;
+	[Parameter] public string ActiveTab { get; set; } = string.Empty;
+	[Parameter] public EventCallback<string> OnTabSelected { get; set; }
+
+	private string css =>
+		TabId == ActiveTab ? "active-tab" : string.Empty;
+
+	private async Task HandleClick()
+	{
+		if (TabId != ActiveTab)
+		{
+			await OnTabSelected.InvokeAsync(TabId);
+		}
+	}
+}

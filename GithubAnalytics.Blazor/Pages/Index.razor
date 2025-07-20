@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using GithubAnalytics.Blazor.Components
+@using GithubAnalytics.Json
 @using Newtonsoft.Json
 
 <PageTitle>Github Analytics</PageTitle>
@@ -12,6 +14,10 @@
 	Or how many <b>lines of codes</b> you have touched?
 	<br />
 	Wonder no more, it's time to find out!
+
+	<br />
+	<br />
+	<i>PS: Do not forget to authorize your organization to see analytics in private repos.</i>
 </span>
 
 <hr />
@@ -24,7 +30,6 @@
 <br />
 
 <div>
-	<label></label>
 	<label>Username</label>
 	<input @bind="Username" class="form-control" placeholder="Optional. Leave empty for current user." />
 </div>
@@ -36,29 +41,79 @@
 <hr />
 
 <h4>Analytics</h4>
-<textarea readonly placeholder="nothing to see here yet...">
-	@Result
-</textarea>
 
-<hr/>
+<div class="tab-container">
+
+	<div class="tab-buttons">
+		<TabButton TabId="Raw"
+				   ActiveTab="@ActiveTab"
+				   OnTabSelected="SetActiveTab" />
+		<TabButton TabId="Formatted"
+				   ActiveTab="@ActiveTab"
+				   OnTabSelected="SetActiveTab" />
+	</div>
+
+	<div class="tab-content">
+		@if (ActiveTab == "Raw")
+		{
+			<textarea readonly placeholder=@EmptyPlaceholder>
+				@ResultString
+						</textarea>
+		}
+		else if (ActiveTab == "Formatted")
+		{
+			@if (Result is null)
+			{
+				<span>@EmptyPlaceholder</span>
+			}
+			else
+			{
+				<h5>Pull Requests</h5>
+				<TabFormattedEntry Label="Total" Value=@Result.TotalPullRequests />
+				<TabFormattedEntry Label="Open" Value=@Result.OpenPullRequests />
+				<TabFormattedEntry Label="Closeds" Value=@Result.ClosedPullRequests />
+				<br />
+				<h5>Files</h5>
+				<TabFormattedEntry Label="Total" Value=@Result.TotalFiles />
+				<TabFormattedEntry Label="Added" Value=@Result.TotalFilesAdded />
+				<TabFormattedEntry Label="Deleted" Value=@Result.TotalFilesDeleted />
+				<TabFormattedEntry Label="Modified" Value=@Result.TotalFilesModified />
+				<br />
+				<h5>Lines</h5>
+				<TabFormattedEntry Label="Total" Value=@Result.TotalChanges />
+				<TabFormattedEntry Label="Added" Value=@Result.TotalAdditions />
+				<TabFormattedEntry Label="Deleted" Value=@Result.TotalDeletions />
+			}
+		}
+	</div>
+</div>
+
+<hr />
 
 <h3>Logs</h3>
 
-<table class="table table-striped">
-	<tbody>
-		@foreach (var entry in _logger.Logs)
-		{
-			<tr>
-				<td>@entry</td>
-			</tr>
-		}
-	</tbody>
-</table>
+<div class="logs-container">
+	<table class="table table-striped">
+		<tbody>
+			@foreach (var entry in _logger.Logs)
+			{
+				<tr>
+					<td>@entry</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
 
 @code {
 	private string Token { get; set; } = "";
 	private string Username { get; set; } = string.Empty;
-	private string Result { get; set; } = string.Empty;
+
+	private UserStatistics Result = null;
+	private string ResultString { get; set; } = string.Empty;
+
+	private string ActiveTab { get; set; } = "Formatted";
+	private string EmptyPlaceholder { get; set; } = "nothing to see here yet...";
 
 	private BlazorLogger _logger { get; set; }
 
@@ -76,8 +131,13 @@
 		using var service = new HttpService(Token, _logger);
 		await service.TestConnection();
 
-		var userStatistics = await service.GetUserStatistics(Username);
-		Result = JsonConvert.SerializeObject(userStatistics, Formatting.Indented);
+		Result = await service.GetUserStatistics(Username);
+		ResultString = JsonConvert.SerializeObject(Result, Formatting.Indented);
+	}
+
+	private void SetActiveTab(string tab)
+	{
+		ActiveTab = tab;
 	}
 
 	public class BlazorLogger(Index index) : ILogger
